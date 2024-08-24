@@ -10,8 +10,6 @@ import edu.wpi.first.math.controller.PIDController;
 
 // All of this is related to the Kraken X60
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -78,25 +76,27 @@ public class Robot extends TimedRobot {
 
     // This will command the motor setpoint to position 2 whenever you switch to Autonomous; but doesn't actually command it move
     myPIDController.setSetpoint(kPosition2);
-
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+
+    // actually commands the motor with desired voltage
+    myKrakenX60.setControl(myVoltage);
+  }
 
   @Override
   public void teleopInit() {
     
     // This will command the motor setpoint to position 1 whenever you switch to TeleOp; but doesn't actually command it move
     myPIDController.setSetpoint(kPosition1);
-
   }
 
   @Override
   public void teleopPeriodic() {
 
+    // actually commands the motor with desired voltage
     myKrakenX60.setControl(myVoltage);
-
   }
 
   @Override
