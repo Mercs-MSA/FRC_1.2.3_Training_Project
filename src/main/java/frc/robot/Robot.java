@@ -11,9 +11,9 @@ import edu.wpi.first.math.controller.PIDController;
 // All of this is related to the Kraken X60
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.controls.VoltageOut;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -27,17 +27,21 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
 
-  // We define 3 constants so that we can easily adjust our controller gain constants
-  final double kP = 20.0;
-  final double kI = 0.0;
-  final double kD = 0.001;
+  // We define 3 constants for each controller so that we can easily adjust our controller gain constants
+  final double kP_pos = 1.5;
+  final double kI_pos = 0.0;
+  final double kD_pos = 0.00001;
+
+  final double kP_vel = 6.5;
+  final double kI_vel = 0.0;
+  final double kD_vel = 0.001;
 
   // We define two constants for the commanded positions; this is in units of shaft rotations
-  final double kPosition1 = 0.8;
+  final double kPosition1 = 3.0;
   final double kPosition2 = 0.0;
 
-  // We define two constants for the commanded velocity; this is in units of shaft rotations per minute
-  final double kVelocity1 = 10.0;
+  // We define two constants for the commanded velocity; this is in units of shaft rotations per second
+  final double kVelocity1 = 0.5;
   final double kVelocity2 = 0.0;
 
   // These variables store our feedback data
@@ -45,8 +49,8 @@ public class Robot extends TimedRobot {
   double feedbackKrakenX60_Velocity;
 
   // We define a PID controller that we utilizes the gain constants
-  PIDController myPIDController_Position = new PIDController(kP, kI, kD);
-  PIDController myPIDController_Velocity = new PIDController(kP, kI, kD);
+  PIDController myPIDController_Position = new PIDController(kP_pos, kI_pos, kD_pos);
+  PIDController myPIDController_Velocity = new PIDController(kP_vel, kI_vel, kD_vel);
 
   // We define a TalonFX motor controller that can be used to move the Kraken X60 and generate position feedback data
   final TalonFX myKrakenX60 = new TalonFX(20);
@@ -61,7 +65,6 @@ public class Robot extends TimedRobot {
   public void robotInit() {
 
     // These modify and then set basic motor control parameters
-    myKrakenX60Config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     myKrakenX60Config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     myKrakenX60.getConfigurator().apply(myKrakenX60Config, 1.0);
 
@@ -75,13 +78,19 @@ public class Robot extends TimedRobot {
 
     // This retrieves the rotational position and velocity of the motor shaft in # of rotations and rotations per minute
     feedbackKrakenX60_Position = myKrakenX60.getPosition().getValueAsDouble();
-    feedbackKrakenX60_Velocity = myKrakenX60.getVelocity().getValueAsDouble();
+    feedbackKrakenX60_Velocity = myKrakenX60.getVelocity().getValueAsDouble()/512.0;
 
     // This method performs the controller calculations using a feedback measurement we give it and outputs a voltage to actually control the motor
-    myVoltage.withOutput(myPIDController_Position.calculate(feedbackKrakenX60_Position));
+    //myVoltage.withOutput(myPIDController_Position.calculate(feedbackKrakenX60_Position));
 
     // The version below is the same as above except it controls using velocity; uncomment to use it instead of the above
-    myVoltage.withOutput(myPIDController_Velocity.calculate(feedbackKrakenX60_Velocity));
+    myVoltage.Output = myPIDController_Velocity.calculate(feedbackKrakenX60_Velocity);
+
+    SmartDashboard.putNumber("KrakenX60_Position", feedbackKrakenX60_Position);
+    SmartDashboard.putNumber("KrakenX60_Velocity", feedbackKrakenX60_Velocity);
+    SmartDashboard.putNumber("KrakenX60_Pos_Command", kPosition1);
+    SmartDashboard.putNumber("KrakenX60_Vel_Command", kVelocity1/10.7); //correction for viewing
+    SmartDashboard.putNumber("myVoltage", myVoltage.Output);
   }
 
   @Override
@@ -90,6 +99,7 @@ public class Robot extends TimedRobot {
     // This will set the motor setpoint to position/velocity 2 whenever you switch to Autonomous; but doesn't actually command it move
     myPIDController_Position.setSetpoint(kPosition2);
     myPIDController_Velocity.setSetpoint(kVelocity2);
+    myPIDController_Velocity.disableContinuousInput();
   }
 
   @Override
