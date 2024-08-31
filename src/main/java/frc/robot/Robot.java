@@ -81,10 +81,10 @@ public class Robot extends TimedRobot {
     feedbackKrakenX60_Velocity = myKrakenX60.getVelocity().getValueAsDouble()/512.0;
 
     // This method performs the controller calculations using a feedback measurement we give it and outputs a voltage to actually control the motor
-    //myVoltage.withOutput(myPIDController_Position.calculate(feedbackKrakenX60_Position));
+    myVoltage.withOutput(myPIDController_Position.calculate(feedbackKrakenX60_Position));
 
     // The version below is the same as above except it controls using velocity; uncomment to use it instead of the above
-    myVoltage.Output = myPIDController_Velocity.calculate(feedbackKrakenX60_Velocity);
+    //myVoltage.Output = myPIDController_Velocity.calculate(feedbackKrakenX60_Velocity);
 
     SmartDashboard.putNumber("KrakenX60_Position", feedbackKrakenX60_Position);
     SmartDashboard.putNumber("KrakenX60_Velocity", feedbackKrakenX60_Velocity);
